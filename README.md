@@ -382,3 +382,173 @@ Berikut adalah contoh README yang diformat dengan baik untuk tugas Anda:
 - `const` harus diinisialisasi dengan nilai yang sudah diketahui pada waktu kompilasi, sedangkan `final` dapat diinisialisasi dengan nilai yang diketahui pada waktu runtime.
 - `const` digunakan untuk nilai yang benar-benar konstan dan tidak akan pernah berubah, sedangkan `final` digunakan untuk nilai yang hanya diinisialisasi sekali dan tidak dapat diubah setelah itu.
 
+# Tugas 8: Flutter Navigation, Layouts, Forms, and Input Elements
+
+## Jawaban dari Pertanyaan
+
+### 1. Kegunaan `const` di Flutter
+Digunakan untuk mendeklarasikan nilai yang bersifat konstan dan tidak akan berubah. Jadi, saat mengcompile, nilainya sudah diketahui.
+
+#### Keuntungan menggunakan `const` pada Flutter
+- Dalam penggunaan widget, jika dideklarasikan dengan `const`, maka hanya dibuat sekali saja, tidak perlu terus dibuat ulang. Cara ini mengurangi beban kerja pada proses rendering dari Flutter-nya.
+- Menghindari bug atau error karena nilai yang dideklarasikan berpotensi berubah selama kode dijalankan. Jika sedari awal saya ingin nilainya tetap konsisten, `const` menjaga nilainya tetap konsisten di manapun digunakan. 
+
+#### Kapan sebaiknya digunakan
+Dalam `glowify`, saya menggunakannya pada `Stateless Widget`. Karena selama aplikasi berjalan, nilainya tidak berubah. Misal, dipakai di widget yang hanya menampilkan teks atau ikon statis.
+
+#### Kapan sebaiknya tidak digunakan
+- Tentu dalam kebalikannya, `Stateful Widget`. Seperti pertanyaan pada Tugas 7, `Stateful Widget` akan berubah (dinamis) selama aplikasi dijalankan, karena memiliki state. 
+- `const` perlu telah diketahui nilainya saat kita ingin compile. Jika tidak, atau kita hanya bisa tau nilainya dalam runtime, gunakan `final` atau variabel biasa, bukan `const`
+
+### 2. Penggunaan `Column` dan `Row` pada Flutter
+
+#### Column
+- Widget yang digunakan untuk menata anak-anaknya secara vertikal. Setiap widget anak akan ditempatkan di bawah widget anak yang sebelumnya.
+- Pada `MenuScreen`, `Column` digunakan untuk menata widget secara vertikal, seperti teks "Welcome to Glowify!" dan `GridView` yang menampilkan item-item menu.
+
+```dart
+Column(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    const Padding(
+      padding: EdgeInsets.only(top: 16.0),
+      child: Text(
+        'Welcome to Glowify!',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18.0,
+        ),
+      ),
+    ),
+    GridView.count(
+      primary: true,
+      padding: const EdgeInsets.all(20),
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      children: items.map((ItemHomepage item) {
+        return ItemCard(item);
+      }).toList(),
+    ),
+  ],
+)
+```
+
+#### Row
+- Widget yang digunakan untuk menata anak-anaknya secara horizontal. Setiap widget anak akan ditempatkan di sebelah kanan widget anak sebelumnya.
+- Pada halaman `MenuScreen`, `Row` digunakan untuk menata `InfoCard` secara horizontal. Jadinya, informasi pengguna ditampilkan dalam satu baris.
+
+```dart
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    InfoCard(title: 'User Id', content: userId),
+    InfoCard(title: 'Username', content: userName),
+    InfoCard(title: 'Skintype', content: skinType),
+  ],
+)
+```
+#### Perbandingan
+- Arah. `Column` secara vertikal, sehingga bertumpuk dari atas ke bawah. `Row` horizontal, sehingga widget berdampingan dari kiri ke kanan.
+
+### 3. Elemen input yang digunakan pada halaman form
+
+Pada halaman form `ProductEntryFormPage` di `glowify`, elemen input yang digunakan:
+
+1. `TextFormField`, untuk input teks biasa (nama produk dan deskripsi produk).
+   - Nama produk menggunakan `TextFormField` dengan validasi --> nama produk tidak kosong, memiliki panjang minimal 3 karakter, dan maksimal 50 karakter.
+   - Deskripsi menggunakan `TextFormField` dengan validasi --> deskripsi tidak kosong, memiliki panjang minimal 5 karakter, dan maksimal 500 karakter.
+
+2. `TextFormField`, untuk input angka (jumlah produk.)
+   - Jumlah enggunakan `TextFormField` dengan tipe input `number` dan validasi --> memastikan jumlah tidak kosong, berupa angka, tidak negatif, dan tidak lebih dari 10000.
+
+3. `ElevatedButton`, untuk menyimpan data yang telah diisi pada form.
+
+#### Elemen input lain yang tidak digunakan
+
+1. `Checkbox`, untuk input boolean, misal untuk memilih opsi ya/tidak.
+2. `Radio`, untuk memilih satu dari beberapa opsi.
+3. `Switch`, untuk input boolean dengan tampilan switch.
+4. `Slider`, untuk input angka dalam rentang tertentu dengan cara menggeser.
+5. `DropdownButton`, untuk memilih satu dari beberapa opsi dalam bentuk dropdown.
+6. `DatePicker`, untuk input tanggal.
+7. `TimePicker`, untuk input waktu.
+
+### 4. Pengaturan Tema
+Konsistensi tema app Flutter bisa diatur dengan properti `theme` pada `MaterialApp`. Nanti tema akan diterapkan secara global ke seluruh app, semua widget juga akan mengikuti gaya yang telah diset.
+
+Pada `glowify`, tema diatur di dalam `main.dart` 
+- Warna utama dengan `primarySwatch`, yaitu `Colors.brown`.
+- Warna sekunder dengan `copyWith(secondary: Colors.brown[200]), supaya tidak monoton dan flat sama semua.
+- Properti `useMaterial3` diset `true`.
+```dart
+import 'package:flutter/material.dart';
+import 'package:glowify/screens/menu.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Glowify',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.brown,
+        ).copyWith(secondary: Colors.brown[200]),
+        useMaterial3: true,
+      ),
+      home: MenuScreen(),
+    );
+  }
+}
+```
+
+### 3. Handle navigasi dengan app banyak halaman
+
+Di `glowify`, navigasi antar halaman dihandle dengan `Navigator` dan `MaterialPageRoute`
+- `navigator.push` akan navigate ke halaman baru, lalu menambah halaman tersebut ke stack navigasi.
+- `navigator.pushReplacement` menavigasi ke halaman baru, lalu replace halaman saat ini di stack navigasi.
+
+
+1. Untuk navigasi dari `MenuScreen` ke `ProductEntryFormPage` ketika user tekan tombol `Tambah Produk`.
+```dart
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => const ProductEntryFormPage(),
+  ),
+);
+```
+2. Untuk navigasi dari `LeftDrawer` ke halaman page item menu yang sesuai dipilih user.
+```dart
+ListTile(
+  leading: const Icon(Icons.home_outlined),
+  title: const Text('Halaman Utama'),
+  onTap: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MenuScreen(),
+      ),
+    );
+  },
+),
+ListTile(
+  leading: const Icon(Icons.shopping_bag),
+  title: const Text('Tambah Produk'),
+  onTap: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProductEntryFormPage(),
+      ),
+    );
+  },
+),
+```
