@@ -14,6 +14,7 @@ class ProductEntryPage extends StatefulWidget {
 class _ProductEntryPageState extends State<ProductEntryPage> {
   Future<List<ProductEntry>> fetchProduct(CookieRequest request) async {
     final response = await request.get('http://127.0.0.1:8000/json/');
+    print(response); // Tambahkan log untuk melihat data yang diambil
 
     var data = response;
 
@@ -40,6 +41,7 @@ class _ProductEntryPageState extends State<ProductEntryPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            print(snapshot.error); // Tambahkan log untuk melihat kesalahan
             return const Center(child: Text('Error loading data'));
           } else if (!snapshot.hasData || snapshot.data.isEmpty) {
             return const Center(
@@ -83,6 +85,8 @@ class _ProductEntryPageState extends State<ProductEntryPage> {
                     Text("Harga: ${snapshot.data[index].fields.price}"),
                     const SizedBox(height: 10),
                     Text("Volume: ${snapshot.data[index].fields.volume}"),
+                    const SizedBox(height: 10),
+                    Image.network("http://127.0.0.1:8000/media/${snapshot.data[index].fields.image}")
                   ],
                 ),
               ),

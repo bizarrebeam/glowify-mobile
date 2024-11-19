@@ -17,6 +17,8 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
   String _name = "";
   int _price = 0;
   String _description = "";
+  int _volume = 0;
+  String _image = "";
 
   @override
   Widget build(BuildContext context) {
@@ -127,6 +129,59 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                   },
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: "Volume",
+                    labelText: "Volume",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _volume = int.tryParse(value!) ?? 0;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Volume tidak boleh kosong!";
+                    }
+                    if (int.tryParse(value) == null) {
+                      return "Volume harus berupa angka!";
+                    }
+                    if (int.parse(value) < 0) {
+                      return "Volume tidak boleh negatif!";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "URL Gambar",
+                    labelText: "URL Gambar",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _image = value!;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "URL Gambar tidak boleh kosong!";
+                    }
+                    return null;
+                  },
+                ),
+              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
@@ -138,14 +193,18 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                     ),
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
+                        // Kirim ke Django dan tunggu respons
                         final response = await request.postJson(
                           "http://127.0.0.1:8000/create-flutter/",
-                          jsonEncode(<String, String>{
+                          jsonEncode(<String, dynamic>{
                             'name': _name,
-                            'price': _price.toString(),
+                            'price': _price,
                             'description': _description,
+                            'volume': _volume,
+                            'image': _image,
                           }),
                         );
+                        print(response); // Tambahkan log untuk melihat respons dari server
                         if (context.mounted) {
                           if (response['status'] == 'success') {
                             ScaffoldMessenger.of(context)
