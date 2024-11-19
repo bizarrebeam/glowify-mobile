@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:glowify/screens/menu.dart';
 import 'package:glowify/screens/productentry_form.dart';
+import 'package:glowify/screens/list_productentry.dart'; 
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -59,6 +60,16 @@ class LeftDrawer extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => const ProductEntryFormPage(),
                 ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.list),
+            title: const Text('Daftar Produk'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProductEntryPage()),
               );
             },
           ),
