@@ -153,7 +153,7 @@ Berikut adalah contoh README yang diformat dengan baik untuk tugas Anda:
    );
    ```
 
-## Jawaban dari Pertanyaan
+## Jawaban dari Pertanyaan Tugas 7
 
 ### 1. Stateless widget vs stateful widget
 #### Stateless widget
@@ -384,7 +384,7 @@ Berikut adalah contoh README yang diformat dengan baik untuk tugas Anda:
 
 # Tugas 8: Flutter Navigation, Layouts, Forms, and Input Elements
 
-## Jawaban dari Pertanyaan
+## Jawaban dari Pertanyaan Tugas 8
 
 ### 1. Kegunaan `const` di Flutter
 Digunakan untuk mendeklarasikan nilai yang bersifat konstan dan tidak akan berubah. Jadi, saat mengcompile, nilainya sudah diketahui.
@@ -552,3 +552,178 @@ ListTile(
   },
 ),
 ```
+
+# Tugas 9: Integrasi Layanan Web Django dengan Aplikasi Flutter
+
+## Implementasi Checklist
+
+### 1. Implementasi Sistem Autentikasi
+- Membuat halaman login di `login.dart` dengan fitur
+  ```dart
+  class LoginPage extends StatefulWidget {
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        body: Card(
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _usernameController,
+                decoration: InputDecoration(labelText: "Username"),
+              ),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(labelText: "Password"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final response = await request.login(
+                    "http://127.0.0.1:8000/auth/login/",
+                    {'username': username, 'password': password}
+                  );
+                },
+                child: Text("Login"),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+  ```
+
+- Membuat halaman register di `register.dart` untuk membuat akun baru
+- Menghubungkan dengan endpoint Django `/auth/login/` dan `/auth/register/`
+- Menggunakan `CookieRequest` untuk manajemen session
+
+### 2. Pembuatan Model Kustom
+- Membuat model `ProductEntry` yang sesuai dengan model Django
+  ```dart
+  class ProductEntry {
+    String? model;
+    String pk;
+    Fields fields;
+
+    ProductEntry({
+      this.model,
+      required this.pk,
+      required this.fields,
+    });
+  }
+  ```
+
+### 3. Halaman Daftar Produk
+-  `list_productentry.dart` untuk menampilkan produk
+- Menggunakan `FutureBuilder` untuk fetch data asinkronus
+  ```dart
+  Future<List<ProductEntry>> fetchProduct(request) async {
+    final response = await request.get('http://127.0.0.1:8000/json/');
+    return data.map((item) => ProductEntry.fromJson(item)).toList();
+  }
+  ```
+- Menampilkan nama, harga, dan deskripsi dalam bentuk card
+- Filter otomatis berdasarkan user yang login (dihandle oleh Django backend)
+
+### 4. Halaman Detail Produk
+- Membuat `view_productentry.dart` dengan tampilan
+  - Gambar produk full width
+  - Nama produk (ukuran besar)
+  - Harga dalam format Rupiah
+  - Volume dengan icon
+  - Deskripsi lengkap
+- Navigasi dari list ke detail 
+  ```dart
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ViewProductEntryPage(product: product),
+    ),
+  );
+  ```
+- Tombol back di AppBar untuk kembali ke list
+
+### 5. Implementasi Fitur Logout
+- Menambahkan tombol logout di menu utama
+- Integrasi dengan endpoint `/auth/logout/`
+  ```dart
+  final response = await request.logout("http://127.0.0.1:8000/auth/logout/");
+  if (response['status']) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+  ```
+
+### Filter Produk Berdasarkan User
+- Filter produk sudah terimplementasi secara otomatis karena:
+  1. Saat create product, setiap produk diasosiasikan dengan `request.user`
+  2. Endpoint JSON di Django memfilter produk berdasarkan user yang login
+  3. Flutter app hanya menampilkan produk yang dikembalikan oleh endpoint
+  4. Setiap user hanya bisa melihat produk yang mereka buat sendiri
+
+## Jawaban dari Pertanyaan Tugas 9
+
+### 1. Perlunya membuat model untuk data JSON
+Dibutuhkan model dalam `glowify` karena:
+- Flutter jadi bisa memahami struktur data produk (nama, harga, deskripsi, dll)
+- Mengubah JSON dari Django menjadi objek Dart 
+- Memberikan type safety, sehingga tidak ada data yang salah format
+- Permudah akses data (contoh: `product.fields.name` jadi lebih mudah dibaca)
+
+Tanpa model, harus manual parsing JSON dan rawan error karena:
+- Tidak ada validasi tipe data, rawan error
+- Akses data lebih rumit (`jsonData['fields']['name']`)
+
+### 2. Fungsi Library http dalam Glowify
+Library http digunakan untuk
+- Komunikasi dengan Django backend
+- Send request GET untuk mengambil data produk
+- Send request POST saat login/register
+- Handle response dari server
+- Atur headers dan cookies untuk autentikasi
+
+### 3. Pentingnya CookieRequest
+- Menyimpan session user yang login
+- Digunakan di semua halaman yang perlu autentikasi
+- User tetap login saat pindah halaman
+- Handle cookies Django untuk security
+
+Dibagikan ke semua komponen agar
+- Tidak perlu login ulang di setiap halaman
+- State login konsisten di seluruh aplikasi
+- Tidak perlu buat instance baru
+
+### 4. Mekanisme Pengiriman Data di Glowify
+1. User input data produk di form
+2. Data dikumpulkan saat tombol `Save` ditekan
+3. Flutter mengubah data jadi JSON
+4. Dikirim ke Django via POST request
+5. Django memproses dan simpan ke database
+6. Flutter fetch data terbaru
+7. Data ditampilkan dalam bentuk card
+
+### 5. Mekanisme Autentikasi
+Login
+1. User input username & password
+2. Data dikirim ke endpoint Django `/auth/login/`
+3. Django validasi kredensial
+4. Jika valid, buat session & kirim cookie
+5. Flutter simpan cookie di CookieRequest
+6. Redirect ke menu utama
+
+Register
+1. User isi form registrasi
+2. Data dikirim ke `/auth/register/`
+3. Django validasi & buat user baru
+4. Redirect ke login page
+
+Logout
+1. User tekan tombol logout
+2. Request ke `/auth/logout/`
+3. Django hapus session
+4. Flutter hapus cookie
+5. Kembali ke login page
+
+
