@@ -204,7 +204,7 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                             'image': _image,
                           }),
                         );
-                        print(response); // Tambahkan log untuk melihat respons dari server
+                        print(response); // log untuk melihat respons dari server
                         if (context.mounted) {
                           if (response['status'] == 'success') {
                             ScaffoldMessenger.of(context)

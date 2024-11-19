@@ -14,7 +14,7 @@ class ProductEntryPage extends StatefulWidget {
 class _ProductEntryPageState extends State<ProductEntryPage> {
   Future<List<ProductEntry>> fetchProduct(CookieRequest request) async {
     final response = await request.get('http://127.0.0.1:8000/json/');
-    print(response); // Tambahkan log untuk melihat data yang diambil
+    print(response); // log untuk melihat data yang diambil
 
     var data = response;
 
@@ -41,7 +41,7 @@ class _ProductEntryPageState extends State<ProductEntryPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            print(snapshot.error); // Tambahkan log untuk melihat kesalahan
+            print(snapshot.error); // og untuk melihat kesalahan
             return const Center(child: Text('Error loading data'));
           } else if (!snapshot.hasData || snapshot.data.isEmpty) {
             return const Center(
