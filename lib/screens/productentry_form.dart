@@ -1,9 +1,14 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:glowify/screens/menu.dart';
 import 'package:glowify/widgets/left_drawer.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker_web/image_picker_web.dart';
 
 class ProductEntryFormPage extends StatefulWidget {
   const ProductEntryFormPage({super.key});
@@ -19,6 +24,50 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
   String _description = "";
   int _volume = 0;
   String _image = "";
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _webImage;
+
+  Future<void> _pickImage() async {
+    if (kIsWeb) {
+      final media = await ImagePickerWeb.getImageAsBytes();
+      if (media != null) {
+        setState(() {
+          _webImage = media;
+        });
+      }
+    } else {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1800,
+        maxHeight: 1800,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    }
+  }
+
+  Widget _buildImagePreview() {
+    if (kIsWeb && _webImage != null) {
+      return Image.memory(
+        _webImage!,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    } else if (!kIsWeb && _imageFile != null) {
+      return Image.file(
+        _imageFile!,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+    return const SizedBox.shrink();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,25 +210,21 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "URL Gambar",
-                    labelText: "URL Gambar",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.image),
+                      label: const Text("Pilih Gambar"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _image = value!;
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "URL Gambar tidak boleh kosong!";
-                    }
-                    return null;
-                  },
+                    const SizedBox(height: 8),
+                    _buildImagePreview(),
+                  ],
                 ),
               ),
               Align(
@@ -193,7 +238,13 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                     ),
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // Kirim ke Django dan tunggu respons
+                        String? imageBase64;
+                        if (kIsWeb && _webImage != null) {
+                          imageBase64 = base64Encode(_webImage!);
+                        } else if (!kIsWeb && _imageFile != null) {
+                          imageBase64 = base64Encode(await _imageFile!.readAsBytes());
+                        }
+
                         final response = await request.postJson(
                           "http://127.0.0.1:8000/create-flutter/",
                           jsonEncode(<String, dynamic>{
@@ -201,7 +252,7 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                             'price': _price,
                             'description': _description,
                             'volume': _volume,
-                            'image': _image,
+                            'image': imageBase64 ?? "",
                           }),
                         );
                         print(response); // log untuk melihat respons dari server
